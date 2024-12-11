@@ -1,0 +1,126 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class StudentGrades:
+    def __init__(self, student_name):
+        self.student_name = student_name
+        self.grades = {}
+
+    def input_grades(self, subject, grade):
+        try:
+            grade = float(grade)
+            if 0 <= grade <= 100:
+                self.grades[subject] = grade
+                return True
+            else:
+                messagebox.showerror("Invalid Grade", "Grade must be between 0 and 100.")
+                return False
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a numeric value for the grade.")
+            return False
+
+    def calculate_average(self):
+        if not self.grades:
+            return 0
+        return sum(self.grades.values()) / len(self.grades)
+
+    def calculate_overall_grade(self):
+        average = self.calculate_average()
+        if average >= 90:
+            return "A"
+        elif average >= 80:
+            return "B"
+        elif average >= 70:
+            return "C"
+        elif average >= 60:
+            return "D"
+        else:
+            return "F"
+
+    def get_report(self):
+        report = f"Student: {self.student_name}\n\nGrades by Subject:\n"
+        for subject, grade in self.grades.items():
+            report += f"{subject}: {grade}\n"
+        average = self.calculate_average()
+        overall_grade = self.calculate_overall_grade()
+        report += f"\nAverage Grade: {average:.2f}\nOverall Grade: {overall_grade}"
+        return report
+
+class GradeApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Student Grade Management System")
+        self.student = None
+
+        # Create and place widgets
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Student Name
+        self.name_label = tk.Label(self.root, text="Enter Student Name:")
+        self.name_label.pack(pady=10)
+
+        self.name_entry = tk.Entry(self.root, width=30)
+        self.name_entry.pack(pady=5)
+
+        self.start_button = tk.Button(self.root, text="Start", command=self.start)
+        self.start_button.pack(pady=10)
+
+        # Subject and Grade input section
+        self.subject_label = tk.Label(self.root, text="Enter Subject:")
+        self.subject_label.pack(pady=10)
+
+        self.subject_entry = tk.Entry(self.root, width=30)
+        self.subject_entry.pack(pady=5)
+
+        self.grade_label = tk.Label(self.root, text="Enter Grade (0-100):")
+        self.grade_label.pack(pady=10)
+
+        self.grade_entry = tk.Entry(self.root, width=30)
+        self.grade_entry.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add Grade", state=tk.DISABLED, command=self.add_grade)
+        self.add_button.pack(pady=10)
+
+        # Report Display
+        self.report_button = tk.Button(self.root, text="Generate Report", state=tk.DISABLED, command=self.generate_report)
+        self.report_button.pack(pady=10)
+
+        self.report_text = tk.Text(self.root, width=50, height=15, wrap=tk.WORD, state=tk.DISABLED)
+        self.report_text.pack(pady=20)
+
+    def start(self):
+        student_name = self.name_entry.get().strip()
+        if student_name:
+            self.student = StudentGrades(student_name)
+            self.name_entry.config(state=tk.DISABLED)
+            self.start_button.config(state=tk.DISABLED)
+            self.add_button.config(state=tk.NORMAL)
+            self.report_button.config(state=tk.NORMAL)
+        else:
+            messagebox.showerror("Invalid Name", "Please enter a valid student name.")
+
+    def add_grade(self):
+        subject = self.subject_entry.get().strip()
+        grade = self.grade_entry.get().strip()
+        
+        if subject and grade:
+            if self.student.input_grades(subject, grade):
+                self.subject_entry.delete(0, tk.END)
+                self.grade_entry.delete(0, tk.END)
+                messagebox.showinfo("Success", f"Grade for {subject} added successfully.")
+        else:
+            messagebox.showerror("Input Error", "Please enter both subject and grade.")
+
+    def generate_report(self):
+        if self.student:
+            report = self.student.get_report()
+            self.report_text.config(state=tk.NORMAL)
+            self.report_text.delete(1.0, tk.END)
+            self.report_text.insert(tk.END, report)
+            self.report_text.config(state=tk.DISABLED)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = GradeApp(root)
+    root.mainloop()
